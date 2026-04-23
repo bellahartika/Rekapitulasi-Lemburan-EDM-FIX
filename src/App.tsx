@@ -22,35 +22,70 @@ function parseCSV(text) {
   });
 }
 
+function isValidName(str) {
+  if (!str) return false;
+
+  const s = String(str).trim();
+
+  if (s.length > 40) return false;
+
+  const blacklist = ["deployment", "http", "www", "script", "data"];
+  if (blacklist.some(k => s.toLowerCase().includes(k))) return false;
+
+  if (s.split(" ").length > 4) return false;
+
+  return true;
+}
+
 function mapRow(row) {
   const get = (...keys) => {
     for (const k of keys) {
-      const val = row[k] || row[k.replace(/_/g, " ")] || row[k.replace(/ /g, "_")] || "";
+      const val =
+        row[k] ||
+        row[k.replace(/_/g, " ")] ||
+        row[k.replace(/ /g, "_")] ||
+        "";
       if (val) return val;
     }
+    return "";
+  };
+
+  // 🔥 FIX NAMA
+  const getNama = () => {
+    const candidates = [
+      row["nama_lengkap"],
+      row["nama"],
+      row["name"],
+      row["full_name"]
+    ];
+
+    for (let c of candidates) {
+      if (isValidName(c)) return c;
+    }
+
     return "-";
   };
+
   return {
-    nama:        get("nama_lengkap", "nama", "name", "full_name"),
-    role:        get("role", "jabatan", "position"),
-    div:         get("div", "divisi", "division", "department"),
-    tim:         get("tim", "team"),
-    tagihan:     get("tagihan", "tagihan_bulan", "billing"),
-    bulan:       get("bulan", "month"),
-    hari:        get("hari", "day"),
-    tanggal:     get("tanggal_lembur", "tanggal", "date"),
-    jam_mulai:   get("jam_mulai", "start_time", "mulai"),
-    jam_selesai: get("jam_selesai", "end_time", "selesai"),
-    total:       get("total", "total_jam", "jam_total", "hours"),
-    usecase:     get("nama_use_case", "nama_use_case_/_nama_project", "project", "use_case"),
-    kegiatan:    get("kegiatan", "kegiatan/task", "task", "activity"),
-    alasan:      get("alasan_lembur", "alasan", "reason"),
-    pic:         get("pic", "pic_(bri:_....._/_sv:_......)", "penanggung_jawab"),
-    evidence:    get("evidence", "bukti"),
-    lokasi:      get("lokasi_lembur", "lokasi", "location"),
+    nama: getNama(),
+    role:        get("role", "jabatan", "position") || "-",
+    div:         get("div", "divisi", "division", "department") || "-",
+    tim:         get("tim", "team") || "-",
+    tagihan:     get("tagihan", "tagihan_bulan", "billing") || "-",
+    bulan:       get("bulan", "month") || "-",
+    hari:        get("hari", "day") || "-",
+    tanggal:     get("tanggal_lembur", "tanggal", "date") || "-",
+    jam_mulai:   get("jam_mulai", "start_time", "mulai") || "-",
+    jam_selesai: get("jam_selesai", "end_time", "selesai") || "-",
+    total:       get("total", "total_jam", "jam_total", "hours") || "-",
+    usecase:     get("nama_use_case", "nama_use_case_/_nama_project", "project", "use_case") || "-",
+    kegiatan:    get("kegiatan", "kegiatan/task", "task", "activity") || "-",
+    alasan:      get("alasan_lembur", "alasan", "reason") || "-",
+    pic:         get("pic", "pic_(bri:_....._/_sv:_......)", "penanggung_jawab") || "-",
+    evidence:    get("evidence", "bukti") || "-",
+    lokasi:      get("lokasi_lembur", "lokasi", "location") || "-",
   };
 }
-
 // Parse tanggal format dd/mm/yyyy or yyyy-mm-dd
 function parseDate(str) {
   if (!str || str === "-") return null;
